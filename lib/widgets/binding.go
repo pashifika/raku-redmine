@@ -20,12 +20,23 @@ package widgets
 import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
+
+	"raku-redmine/share"
 )
 
-func NewEntryWithData(data binding.String, validator bool) *widget.Entry {
-	entry := widget.NewEntryWithData(data)
-	if !validator {
-		entry.Validator = nil
+func NewEntryWithData(data binding.String) *widget.Entry {
+	entry := widget.NewEntry()
+	oldData, err := data.Get()
+	if err != nil {
+		share.UI.InfoBar.SendError(err)
+	} else {
+		entry.SetText(oldData)
+	}
+	entry.OnChanged = func(s string) {
+		err = data.Set(s)
+		if err != nil {
+			share.UI.InfoBar.SendError(err)
+		}
 	}
 	return entry
 }

@@ -48,6 +48,10 @@ func (TimeEntry) TableName() string {
 	return "issue_time_entry"
 }
 
+//
+// ------ to ui
+//
+
 // MakeTimeEntryUI make TimeEntry to time entry ui use data
 func MakeTimeEntryUI(issueId int, last types.CustomFields) *TimeEntry {
 	cf := make(types.CustomFields)

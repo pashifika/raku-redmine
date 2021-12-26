@@ -1,0 +1,8 @@
+Website = "https://example.com"
+
+[Details]
+  Icon = "resource/app_icon.png"
+  Name = "Raku redmine"
+  ID = "com.raku-redmine.app"
+  Version = "1.0.0"
+  Build = 14

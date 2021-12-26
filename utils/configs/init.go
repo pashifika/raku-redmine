@@ -1,4 +1,4 @@
-// Package lib
+// Package configs
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -15,20 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lib
+package configs
 
 import (
-	"fyne.io/fyne/v2"
+	"gopkg.in/ini.v1"
 )
 
-var (
-	MainWindow = fyne.Size{
-		Width:  680,
-		Height: 700,
+var Config *Root
+
+// Load and parses from INI data sources map to Config.
+func Load(path string) error {
+	cfg, err := ini.Load(path)
+	if err != nil {
+		return err
 	}
-	LoginWindow = fyne.Size{
-		Width:  460,
-		Height: 405,
+	if Config == nil {
+		Config = &Root{Font: Font{}, Redmine: Redmine{}}
 	}
-	DateLayout = "2006/01/02"
-)
+	err = cfg.MapTo(Config)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Save Config data to file system.
+func Save(path string) error {
+	cfg := ini.Empty()
+	err := cfg.ReflectFrom(Config)
+	if err != nil {
+		return err
+	}
+	err = cfg.SaveTo(path)
+	if err != nil {
+		return err
+	}
+	return nil
+}

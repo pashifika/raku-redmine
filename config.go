@@ -1,4 +1,6 @@
-// Package lib
+//go:build release
+// +build release
+
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -15,20 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lib
+package main
 
-import (
-	"fyne.io/fyne/v2"
-)
+const isRelease = true
 
-var (
-	MainWindow = fyne.Size{
-		Width:  680,
-		Height: 700,
-	}
-	LoginWindow = fyne.Size{
-		Width:  460,
-		Height: 405,
-	}
-	DateLayout = "2006/01/02"
-)
+var confCustomFields string

@@ -26,7 +26,7 @@ var Conn *gorm.DB
 
 func NewDatabase() error {
 	var err error
-	Conn, err = gorm.Open(sqlite.Open(dsn_conf), &gorm.Config{})
+	Conn, err = gorm.Open(sqlite.Open(DsnConf), &gorm.Config{})
 	if err != nil {
 		return err
 	}

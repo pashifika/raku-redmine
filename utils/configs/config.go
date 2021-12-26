@@ -1,4 +1,4 @@
-// Package lib
+// Package configs
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -15,20 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lib
+package configs
 
-import (
-	"fyne.io/fyne/v2"
-)
+type Root struct {
+	Font    Font    `ini:"FONT"`
+	Redmine Redmine `ini:"REDMINE"`
+}
 
-var (
-	MainWindow = fyne.Size{
-		Width:  680,
-		Height: 700,
-	}
-	LoginWindow = fyne.Size{
-		Width:  460,
-		Height: 405,
-	}
-	DateLayout = "2006/01/02"
-)
+type Redmine struct {
+	MasterUrl string `ini:"master_url"`
+	ApiKey    string `ini:"api_key"`
+}
+
+type Font struct {
+	Path string `ini:"path"`
+}

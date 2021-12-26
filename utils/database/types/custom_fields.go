@@ -42,17 +42,15 @@ func (j CustomFields) Value() (driver.Value, error) {
 // Scan assigns a value from a database driver.
 func (j *CustomFields) Scan(src interface{}) error {
 	var err error
-	if src != nil {
-		switch src.(type) {
-		case string:
-			err = decode(&j, conv.StringToBytes(src.(string)))
-		case []byte:
-			err = decode(&j, src.([]byte))
-		default:
-			err = errors.New("can not scan value to CustomFields")
-		}
-	} else {
+	switch src.(type) {
+	case string:
+		err = decode(&j, conv.StringToBytes(src.(string)))
+	case []byte:
+		err = decode(&j, src.([]byte))
+	case nil:
 		err = errors.New("can not scan nil to CustomFields")
+	default:
+		err = errors.New("can not scan value to CustomFields")
 	}
 	if err == nil {
 		for _, val := range *j {

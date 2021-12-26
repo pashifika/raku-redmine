@@ -24,13 +24,14 @@ import (
 	"github.com/goccy/go-json"
 
 	lt "raku-redmine/lib/types"
+	"raku-redmine/share"
 	db "raku-redmine/utils/database"
 	"raku-redmine/utils/database/models"
 	"raku-redmine/utils/database/types"
 )
 
 type ScrollList struct {
-	Scroll    *container.Scroll
+	scroll    *container.Scroll
 	Last      types.CustomFields
 	vbox      *fyne.Container
 	timeEntry []*models.TimeEntry
@@ -39,15 +40,21 @@ type ScrollList struct {
 func NewScrollList() *ScrollList {
 	vbox := container.NewVBox()
 	list := &ScrollList{
-		Scroll:    container.NewVScroll(vbox),
+		scroll:    container.NewVScroll(vbox),
 		vbox:      vbox,
 		timeEntry: []*models.TimeEntry{},
 	}
 	return list
 }
 
+// Scroll return time entry items scroll container
+func (s *ScrollList) Scroll() *container.Scroll {
+	return s.scroll
+}
+
 // Append a new TimeEntry data to the end of this TimeEntry scroll ui
 func (s *ScrollList) Append(d *models.TimeEntry) {
+	d.Order = len(s.timeEntry)
 	s.timeEntry = append(s.timeEntry, d)
 	s.vbox.Add(NewPowerCard().Make(d))
 }
@@ -55,6 +62,7 @@ func (s *ScrollList) Append(d *models.TimeEntry) {
 // Prepend a new TimeEntry data to the start of this TimeEntry scroll ui
 func (s *ScrollList) Prepend(d *models.TimeEntry) {
 	// TODO: fix the models.TimeEntry.Order
+	d.Order = 0
 	s.timeEntry = append([]*models.TimeEntry{d}, s.timeEntry...)
 	s.vbox.Objects = append([]fyne.CanvasObject{NewPowerCard().Make(d)}, s.vbox.Objects...)
 	s.vbox.Refresh()
@@ -62,6 +70,10 @@ func (s *ScrollList) Prepend(d *models.TimeEntry) {
 
 func (s *ScrollList) GetAll() []*models.TimeEntry {
 	return s.timeEntry
+}
+
+func (s *ScrollList) LastCustomFields() types.CustomFields {
+	return s.Last
 }
 
 // LoadCustomFields unmarshal the redmine /custom_fields.json API data to default CustomFields
@@ -133,6 +145,25 @@ func (s *ScrollList) ReloadAll() error {
 			s.vbox.Objects[i] = NewPowerCard().Make(data)
 		}
 		s.vbox.Refresh()
+	}
+	return nil
+}
+
+func (s *ScrollList) SaveAll() error {
+	for _, data := range s.timeEntry {
+		var count int64
+		err := db.Conn.Model(data).Where(`id = ?`, data.UID).Count(&count).Error
+		if err != nil {
+			share.UI.InfoBar.SendError(err)
+		}
+		if count == 0 {
+			err = db.Conn.Create(data).Error
+		} else {
+			err = db.Conn.Debug().Omit("id,issue_id").Updates(data).Error
+		}
+		if err != nil {
+			share.UI.InfoBar.SendError(err)
+		}
 	}
 	return nil
 }

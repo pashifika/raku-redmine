@@ -73,7 +73,7 @@ func (pc *PowerCard) Make(d *models.TimeEntry) fyne.CanvasObject {
 		container.NewHBox(
 			container.NewGridWrap(fyne.NewSize(28, 40), widget.NewCheckWithData("", d.Checked)),
 			makeIssuesHyperlink(d.IssueId),
-			container.NewGridWrap(fyne.NewSize(310, 40), widgets.NewEntryWithData(d.IssueTitle, false)),
+			container.NewGridWrap(fyne.NewSize(310, 40), widgets.NewEntryWithData(d.IssueTitle)),
 			layout.NewSpacer(),
 			widget.NewLabel("Date:"),
 			container.NewGridWrap(fyne.NewSize(134, 40), date),
@@ -82,7 +82,7 @@ func (pc *PowerCard) Make(d *models.TimeEntry) fyne.CanvasObject {
 	)
 	pc.label.Add(container.NewHBox(
 		widget.NewLabel("Comment:"),
-		container.NewGridWrap(fyne.NewSize(pc.label.Size().Width-224, 40), widgets.NewEntryWithData(d.Comment, false)),
+		container.NewGridWrap(fyne.NewSize(pc.label.Size().Width-224, 40), widgets.NewEntryWithData(d.Comment)),
 		layout.NewSpacer(),
 		widget.NewLabel("Time:"),
 		container.NewGridWrap(
@@ -91,7 +91,7 @@ func (pc *PowerCard) Make(d *models.TimeEntry) fyne.CanvasObject {
 		),
 	))
 
-	pc.custom = container.NewGridWithColumns(2, widget.NewLabel("Time:"))
+	pc.custom = container.NewGridWithColumns(2, widget.NewLabel("time_entry_activities..."))
 	// TODO: switch interface
 	for _, id := range getCustomFieldKeys(d.CustomFields) {
 		var height float32 = 0

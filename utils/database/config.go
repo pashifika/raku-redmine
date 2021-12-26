@@ -1,7 +1,6 @@
 //go:build release
 // +build release
 
-// Package database
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -20,4 +19,4 @@
  */
 package database
 
-const dsn_conf = "./configs/setting.db"
+var DsnConf string

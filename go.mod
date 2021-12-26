@@ -7,6 +7,7 @@ require (
 	github.com/goccy/go-json v0.8.1
 	github.com/pashifika/util v0.1.2
 	github.com/stretchr/testify v1.7.0
+	gopkg.in/ini.v1 v1.66.2
 	gorm.io/driver/sqlite v1.2.6
 	gorm.io/gorm v1.22.4
 )
@@ -16,7 +17,7 @@ require (
 	github.com/fredbi/uri v0.0.0-20181227131451-3dcfdacbaaf3 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-gl/gl v0.0.0-20210813123233-e4099ee2221f // indirect
-	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20211024062804-40e447a793be // indirect
+	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20211213063430-748e38ca8aec // indirect
 	github.com/godbus/dbus/v5 v5.0.4 // indirect
 	github.com/goki/freetype v0.0.0-20181231101311-fa8a33aabaff // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect

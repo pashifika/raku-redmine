@@ -18,9 +18,42 @@
 package share
 
 import (
-	"raku-redmine/lib/time_entry"
+	"fyne.io/fyne/v2/container"
+
+	"raku-redmine/utils/database/models"
+	"raku-redmine/utils/database/types"
 )
 
-var (
-	TimeEntryUI *time_entry.ScrollList
-)
+var UI AppUI
+
+type AppUI struct {
+	AppName    string
+	UserDir    string
+	SystemFont string
+	OS         string
+	TimeEntry  TimeEntry
+	Toolbar    Toolbar
+	InfoBar    InfoBar
+}
+
+type Toolbar interface {
+	SetToTimeEntry()
+}
+
+type InfoBar interface {
+	SendDebug(msg string)
+	SendWarning(msg string)
+	SendError(err error)
+	SendInfo(msg string)
+	Close()
+}
+
+type TimeEntry interface {
+	Append(d *models.TimeEntry)
+	Prepend(d *models.TimeEntry)
+	LoadCustomFields(data []byte) error
+	LastCustomFields() types.CustomFields
+	Scroll() *container.Scroll
+	ReloadAll() error
+	SaveAll() error
+}

@@ -1,4 +1,4 @@
-// Package types
+// Package resource
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -15,43 +15,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package types
+package resource
 
 import (
-	"database/sql/driver"
 	"errors"
+	"io/ioutil"
+	"path/filepath"
 
-	"fyne.io/fyne/v2/data/binding"
+	"github.com/pashifika/util/files"
 )
 
-type Bool struct {
-	binding.Bool
+type Fake struct {
+	path  string
+	name  string
+	cache []byte
 }
 
-// Value returns a driver must not panic.
-func (b Bool) Value() (driver.Value, error) {
-	if b.Bool == nil {
-		return false, nil
+func New(path string) (*Fake, error) {
+	if !files.Exists(path) {
+		return nil, errors.New("resource file do not exist")
 	}
-	str, err := b.Get()
+	f, err := files.FileOpen(path, "r")
 	if err != nil {
 		return nil, err
 	}
-	return str, err
+	//goland:noinspection GoUnhandledErrorResult
+	defer f.Close()
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Fake{
+		path:  filepath.Dir(path),
+		name:  filepath.Base(path),
+		cache: buf,
+	}, nil
 }
 
-// Scan assigns a value from a database driver.
-func (b *Bool) Scan(src interface{}) error {
-	var err error
-	if b.Bool == nil {
-		b.Bool = binding.NewBool()
-	}
-	if src != nil {
-		if val, ok := src.(bool); ok {
-			err = b.Set(val)
-		} else {
-			err = errors.New("can not scan value to binding.String")
-		}
-	}
-	return err
+func (f *Fake) Name() string {
+	return f.name
+}
+
+func (f *Fake) Content() []byte {
+	return f.cache
 }

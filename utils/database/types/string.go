@@ -47,11 +47,11 @@ func (s String) Value() (driver.Value, error) {
 // Scan assigns a value from a database driver.
 func (s *String) Scan(src interface{}) error {
 	var err error
+	if s.String == nil {
+		s.String = binding.NewString()
+	}
 	if src != nil {
 		if val, ok := src.(string); ok {
-			if s.String == nil {
-				s.String = binding.NewString()
-			}
 			err = s.Set(val)
 		} else {
 			err = errors.New("can not scan value to binding.String")
@@ -87,11 +87,11 @@ func (s StrToDate) Value() (driver.Value, error) {
 // Scan assigns a value from a database driver.
 func (s *StrToDate) Scan(src interface{}) error {
 	var err error
+	if s.String == nil {
+		s.String = binding.NewString()
+	}
 	if src != nil {
 		if val, ok := src.(time.Time); ok {
-			if s.String == nil {
-				s.String = binding.NewString()
-			}
 			err = s.Set(val.Format(lib.DateLayout))
 		} else {
 			err = errors.New("can not scan value to binding.StrToDate")
@@ -127,10 +127,10 @@ func (s StrToFloat) Value() (driver.Value, error) {
 // Scan assigns a value from a database driver.
 func (s *StrToFloat) Scan(src interface{}) error {
 	var err error
+	if s.String == nil {
+		s.String = binding.NewString()
+	}
 	if src != nil {
-		if s.String == nil {
-			s.String = binding.NewString()
-		}
 		switch src.(type) {
 		case float32:
 			err = s.Set(strconv.FormatFloat(float64(src.(float32)), 'f', 2, 32))

@@ -48,35 +48,3 @@ func (p *PossibleList) Label() string {
 func (p *PossibleList) Value() string {
 	return p.ValueData
 }
-
-// LoadCustomFields unmarshal the redmine /custom_fields.json API data to custom binding struct.
-//func LoadCustomFields(data []byte) (map[int]*FieldList, error) {
-//	_customFields = map[int][]*PossibleList{}
-//	var fields struct {
-//		Data []*CustomField `json:"custom_fields"`
-//	}
-//	err := json.Unmarshal(data, &fields)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	res := map[int]*FieldList{}
-//	for _, field := range fields.Data {
-//		if field.CustomizedType == "time_entry" && field.Visible {
-//			// TODO: switch interface
-//			switch field.FieldFormat {
-//			case "list":
-//				bindingData := binding.NewString()
-//				_ = bindingData.Set(field.DefaultValue)
-//				res[field.Id] = &FieldList{
-//					data:     bindingData,
-//					Name:     field.Name,
-//					Default:  field.DefaultValue,
-//					Required: field.IsRequired,
-//				}
-//				_customFields[field.Id] = field.PossibleValues
-//			}
-//		}
-//	}
-//	return res, nil
-//}
