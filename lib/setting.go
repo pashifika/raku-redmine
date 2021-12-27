@@ -30,5 +30,5 @@ var (
 		Width:  460,
 		Height: 405,
 	}
-	DateLayout = "2006/01/02"
+	DateLayout = "2006-01-02"
 )

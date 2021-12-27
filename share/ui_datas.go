@@ -22,6 +22,7 @@ import (
 
 	"raku-redmine/utils/database/models"
 	"raku-redmine/utils/database/types"
+	"raku-redmine/utils/redmine"
 )
 
 var UI AppUI
@@ -34,6 +35,7 @@ type AppUI struct {
 	OS         string
 	ARCH       string
 	Debug      bool
+	Client     *redmine.Client
 	Window     Window
 	TimeEntry  TimeEntry
 	Toolbar    Toolbar
@@ -59,9 +61,12 @@ type InfoBar interface {
 type TimeEntry interface {
 	Append(d *models.TimeEntry)
 	Prepend(d *models.TimeEntry)
+	LoadActivities() error
 	LoadCustomFields(data []byte) error
 	LastCustomFields() types.CustomFields
 	Scroll() *container.Scroll
 	ReloadAll() error
 	SaveAll() error
+	PostChecked()
+	DeleteNoChecked(check bool)
 }

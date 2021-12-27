@@ -24,6 +24,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/image/colornames"
 
 	"raku-redmine/resource"
 	"raku-redmine/share"
@@ -33,7 +34,7 @@ func (win *Window) About() {
 	w := win.App.NewWindow("About")
 	w.CenterOnScreen()
 	w.SetFixedSize(true)
-	w.Resize(fyne.NewSize(400, 355))
+	w.Resize(fyne.NewSize(400, 310))
 
 	bottom := container.NewVBox(
 		widget.NewSeparator(),
@@ -54,17 +55,12 @@ func (win *Window) About() {
 			widget.NewCard("Raku redmine", "easy add time entry to issues.", container.NewVBox(
 				container.NewGridWrap(fyne.NewSize(248, 8)),
 				container.NewHBox(
-					widget.NewLabel("Home page:"),
-					container.NewHBox(widget.NewHyperlink("Go to Github",
-						urlMustParse("https://github.com/pashifika/raku-redmine"))),
-				),
-				container.NewHBox(
 					widget.NewLabel("OS:"),
-					container.NewHBox(widget.NewHyperlink(share.UI.OS+"/"+share.UI.ARCH, nil)),
+					canvas.NewText(share.UI.OS+"/"+share.UI.ARCH, colornames.Burlywood),
 				),
 				container.NewHBox(
 					widget.NewLabel("Version:"),
-					container.NewHBox(widget.NewHyperlink(share.UI.AppVer, nil)),
+					canvas.NewText(share.UI.AppVer, colornames.Burlywood),
 				),
 				container.NewGridWrap(fyne.NewSize(248, 12)),
 				widget.NewLabel("   Copyright (c) 2021. Pashifika"),

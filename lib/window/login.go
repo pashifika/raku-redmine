@@ -20,6 +20,7 @@ package window
 import (
 	"errors"
 	"net/url"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -86,7 +87,7 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) e
 				}
 
 				if onProcessed != nil {
-					err := onProcessed(redmineURL.Text, redmineKey.Text, fontPath.Text)
+					err := onProcessed(strings.TrimRight(redmineURL.Text, "/"), redmineKey.Text, fontPath.Text)
 					if err != nil {
 						dialog.ShowError(err, w)
 						return

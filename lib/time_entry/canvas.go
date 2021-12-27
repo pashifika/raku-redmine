@@ -18,6 +18,10 @@
 package time_entry
 
 import (
+	"errors"
+	"strconv"
+	"sync"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
@@ -33,6 +37,7 @@ import (
 )
 
 type ScrollList struct {
+	_mu       sync.RWMutex
 	scroll    *container.Scroll
 	Last      types.CustomFields
 	vbox      *fyne.Container
@@ -42,6 +47,7 @@ type ScrollList struct {
 func NewScrollList() *ScrollList {
 	vbox := container.NewVBox()
 	list := &ScrollList{
+		_mu:       sync.RWMutex{},
 		scroll:    container.NewVScroll(vbox),
 		vbox:      vbox,
 		timeEntry: []*models.TimeEntry{},
@@ -56,25 +62,35 @@ func (s *ScrollList) Scroll() *container.Scroll {
 
 // Append a new TimeEntry data to the end of this TimeEntry scroll ui
 func (s *ScrollList) Append(d *models.TimeEntry) {
+	s._mu.Lock()
 	d.Order = len(s.timeEntry)
 	s.timeEntry = append(s.timeEntry, d)
 	s.vbox.Add(NewPowerCard().Make(d))
+	s._mu.Unlock()
 }
 
 // Prepend a new TimeEntry data to the start of this TimeEntry scroll ui
 func (s *ScrollList) Prepend(d *models.TimeEntry) {
-	// TODO: fix the models.TimeEntry.Order
+	s._mu.Lock()
 	d.Order = 0
+	for i := 0; i < len(s.timeEntry); i++ {
+		s.timeEntry[i].Order++
+	}
 	s.timeEntry = append([]*models.TimeEntry{d}, s.timeEntry...)
 	s.vbox.Objects = append([]fyne.CanvasObject{NewPowerCard().Make(d)}, s.vbox.Objects...)
+	s._mu.Unlock()
 	s.vbox.Refresh()
 }
 
 func (s *ScrollList) GetAll() []*models.TimeEntry {
+	s._mu.RLock()
+	defer s._mu.RUnlock()
 	return s.timeEntry
 }
 
 func (s *ScrollList) LastCustomFields() types.CustomFields {
+	s._mu.RLock()
+	defer s._mu.RUnlock()
 	return s.Last
 }
 
@@ -89,6 +105,7 @@ func (s *ScrollList) LoadCustomFields(data []byte) error {
 		return err
 	}
 
+	s._mu.Lock()
 	s.Last = make(types.CustomFields)
 	for _, field := range fields.Data {
 		if field.CustomizedType == "time_entry" && field.Visible {
@@ -104,6 +121,31 @@ func (s *ScrollList) LoadCustomFields(data []byte) error {
 			}
 		}
 	}
+	s._mu.Unlock()
+	return nil
+}
+
+// LoadActivities unmarshal the redmine /enumerations/time_entry_activities.json API data to ActivityFields
+func (s *ScrollList) LoadActivities() error {
+	activities, err := share.UI.Client.TimeEntryActivities()
+	if err != nil {
+		return err
+	}
+	listLen := len(activities)
+	if listLen == 0 {
+		return nil
+	}
+	_activityFields = make([]*PossibleList, len(activities))
+	for i, activity := range activities {
+		if !activity.Active {
+			continue
+		}
+		_activityFields[i] = &PossibleList{
+			IsDefault: activity.IsDefault,
+			ValueData: strconv.Itoa(activity.Id),
+			LabelData: activity.Name,
+		}
+	}
 	return nil
 }
 
@@ -114,6 +156,8 @@ func (s *ScrollList) ReloadAll() error {
 		return err
 	}
 
+	s._mu.Lock()
+	defer s._mu.Unlock()
 	dLen := len(datas)
 	if dLen > 0 {
 		s.timeEntry = datas
@@ -148,11 +192,15 @@ func (s *ScrollList) ReloadAll() error {
 		}
 		s.vbox.Refresh()
 	}
+	if share.UI.InfoBar != nil {
+		share.UI.InfoBar.SendInfo("time entry data is reloaded")
+	}
 	return nil
 }
 
 // SaveAll time entry data and to database and return the last database error
 func (s *ScrollList) SaveAll() error {
+	s._mu.RLock()
 	var last error
 	for _, data := range s.timeEntry {
 		var count int64
@@ -190,5 +238,68 @@ func (s *ScrollList) SaveAll() error {
 			}
 		}
 	}
+	s._mu.RUnlock()
+	share.UI.InfoBar.SendInfo("time entry data is saved")
 	return last
+}
+
+func (s *ScrollList) DeleteNoChecked(check bool) {
+	s._mu.Lock()
+	defer s._mu.Unlock()
+	s.findCheck(check, func(index int) {
+		err := s.timeEntry[index].Checked.Set(false)
+		if err != nil {
+			log.Error("ScrollList.DeleteNoChecked.Checked", err.Error())
+			share.UI.InfoBar.SendError(err)
+			return
+		}
+		err = db.Conn.Delete(s.timeEntry[index]).Error
+		if err != nil {
+			log.Error("ScrollList.DeleteNoChecked.Delete", err.Error())
+			share.UI.InfoBar.SendError(err)
+			return
+		}
+		s.vbox.Objects[index].Hide()
+	})
+	share.UI.InfoBar.SendInfo("no checked items is delete")
+}
+
+func (s *ScrollList) PostChecked() {
+	my, err := share.UI.Client.MyAccount()
+	if err != nil {
+		log.Error("ScrollList.PostChecked.MyAccount", err.Error())
+		share.UI.InfoBar.SendError(errors.New("can not get my account data"))
+		return
+	}
+	s._mu.RLock()
+	defer s._mu.RUnlock()
+	s.findCheck(true, func(index int) {
+		data, err := models.MakeClientResponse(s.timeEntry[index], my.Id)
+		if err != nil {
+			log.Error("ScrollList.PostChecked.MakeClientResponse", err.Error())
+			share.UI.InfoBar.SendError(err)
+			return
+		}
+		_, err = share.UI.Client.CreateTimeEntry(data)
+		if err != nil {
+			log.Error("ScrollList.PostChecked.ClientTimeEntry", err.Error())
+			share.UI.InfoBar.SendError(err)
+			return
+		}
+	})
+	share.UI.InfoBar.SendInfo("post to redmine time entry item complete")
+}
+
+func (s *ScrollList) findCheck(check bool, callback func(index int)) {
+	for i, data := range s.timeEntry {
+		checked, err := data.Checked.Get()
+		if err != nil {
+			log.Error("ScrollList.findCheck.Checked", err.Error(), zap.String("id", data.UID.String()))
+			share.UI.InfoBar.SendError(err)
+			continue
+		}
+		if checked == check && callback != nil {
+			callback(i)
+		}
+	}
 }

@@ -67,17 +67,47 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 					share.UI.InfoBar.SendError(err)
 					return
 				}
-				share.UI.TimeEntry.Append(models.MakeTimeEntryUI(issueId, share.UI.TimeEntry.LastCustomFields()))
+				// get issue data
+				share.UI.InfoBar.SendInfo("now get redmine issue title...")
+				res, err := share.UI.Client.Issue(issueId)
+				if err != nil {
+					log.Error("SetToTimeEntry.ContentAdd.Client", err.Error(), zap.String("input", inputId))
+					share.UI.InfoBar.SendError(err)
+					return
+				}
+				// add to ui
+				share.UI.TimeEntry.Prepend(models.MakeTimeEntryUI(
+					res.Project.Id, issueId, res.Subject, share.UI.TimeEntry.LastCustomFields(),
+				))
+				share.UI.InfoBar.SendInfo("added time entry item.")
 			})
 		}),
-		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
-			err := share.UI.TimeEntry.ReloadAll()
-			if err != nil {
-				log.Error("SendError.ViewRefresh", err.Error(), zap.Error(err))
-				share.UI.InfoBar.SendError(err)
-			}
+		widget.NewToolbarAction(theme.DeleteIcon(), func() {
+			dialog.ShowConfirm("WARNING", "Are you sure delete no checked items?", func(b bool) {
+				if b {
+					share.UI.TimeEntry.DeleteNoChecked(false)
+				}
+			}, t._topWindow)
 		}),
 		widget.NewToolbarSpacer(),
+		widget.NewToolbarAction(theme.UploadIcon(), func() {
+			dialog.ShowConfirm("WARNING", "Are you sure post checked items?", func(b bool) {
+				if b {
+					share.UI.TimeEntry.PostChecked()
+				}
+			}, t._topWindow)
+		}),
+		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
+			dialog.ShowConfirm("WARNING", "Are you sure reload all?", func(b bool) {
+				if b {
+					err := share.UI.TimeEntry.ReloadAll()
+					if err != nil {
+						log.Error("SendError.ViewRefresh", err.Error(), zap.Error(err))
+						share.UI.InfoBar.SendError(err)
+					}
+				}
+			}, t._topWindow)
+		}),
 		widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
 			err := share.UI.TimeEntry.SaveAll()
 			if err != nil {
@@ -86,7 +116,7 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 		}),
 		widget.NewToolbarSeparator(),
 		widget.NewToolbarAction(icons.LoggerIconRes, func() {
-			share.UI.InfoBar.SendWarning("test warning...")
+			dialog.ShowInformation("Sorry", "Coming soon...", t._topWindow)
 		}),
 		widget.NewToolbarAction(theme.HistoryIcon(), func() {
 			dialog.ShowInformation("Sorry", "Coming soon...", t._topWindow)

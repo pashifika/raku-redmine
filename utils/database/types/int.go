@@ -20,37 +20,47 @@ package types
 import (
 	"database/sql/driver"
 	"errors"
+	"strconv"
 
 	"fyne.io/fyne/v2/data/binding"
 )
 
-type Bool struct {
-	binding.Bool
+type Int struct {
+	binding.String
 }
 
 // Value returns a driver must not panic.
-func (b Bool) Value() (driver.Value, error) {
-	if b.Bool == nil {
+func (b Int) Value() (driver.Value, error) {
+	if b.String == nil {
 		return false, nil
 	}
-	d, err := b.Get()
+	str, err := b.Get()
 	if err != nil {
 		return nil, err
 	}
-	return d, err
+	val, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return val, err
 }
 
 // Scan assigns a value from a database driver.
-func (b *Bool) Scan(src interface{}) error {
+func (b *Int) Scan(src interface{}) error {
 	var err error
-	if b.Bool == nil {
-		b.Bool = binding.NewBool()
+	if b.String == nil {
+		b.String = binding.NewString()
 	}
 	if src != nil {
-		if val, ok := src.(bool); ok {
-			err = b.Set(val)
-		} else {
-			err = errors.New("can not scan value to binding.String")
+		switch src.(type) {
+		case int:
+			err = b.Set(strconv.Itoa(src.(int)))
+		case int32:
+			err = b.Set(strconv.Itoa(int(src.(int32))))
+		case int64:
+			err = b.Set(strconv.FormatInt(src.(int64), 10))
+		default:
+			err = errors.New("can not scan value to binding.Int")
 		}
 	}
 	return err

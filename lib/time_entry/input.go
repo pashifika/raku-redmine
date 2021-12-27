@@ -18,7 +18,8 @@
 package time_entry
 
 var (
-	_customFields map[int][]*PossibleList // TODO: switch interface
+	_customFields   map[int][]*PossibleList // TODO: switch interface
+	_activityFields []*PossibleList
 )
 
 type CustomField struct {
@@ -37,6 +38,7 @@ type CustomField struct {
 }
 
 type PossibleList struct {
+	IsDefault bool   `json:"-"`
 	ValueData string `json:"value"`
 	LabelData string `json:"label"`
 }

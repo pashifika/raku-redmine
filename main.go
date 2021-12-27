@@ -25,6 +25,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/pashifika/util/files"
+	"go.uber.org/zap"
 
 	"raku-redmine/lib"
 	"raku-redmine/lib/master"
@@ -37,6 +38,7 @@ import (
 	db "raku-redmine/utils/database"
 	"raku-redmine/utils/database/models"
 	"raku-redmine/utils/log"
+	"raku-redmine/utils/redmine"
 	ur "raku-redmine/utils/resource"
 )
 
@@ -48,9 +50,10 @@ func main() {
 	// app init
 	a := app.New()
 	a.SetIcon(resource.AppIconRes)
-	share.UI = share.AppUI{AppName: appName, AppVer: "v0.1.2"}
+	share.UI = share.AppUI{AppName: appName, AppVer: "v0.1.3"}
 	share.UI.Window = &window.Window{App: a}
 	topWindow = a.NewWindow(appName)
+	topWindow.CenterOnScreen()
 	topWindow.SetFixedSize(true)
 	topWindow.Resize(lib.MainWindow)
 	topWindow.SetMainMenu(master.NewMenu(a, topWindow))
@@ -76,6 +79,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			newClient()
 			err = loadMaster(a)
 			if err != nil {
 				return err
@@ -95,20 +99,27 @@ func main() {
 	}
 
 	if ready {
+		newClient()
 		err = loadMaster(a)
 		if err != nil {
 			dialog.ShowError(err, topWindow)
-
 		}
 		topWindow.Show()
 		log.Info("main", "app init.")
 	}
 	defer func() {
-		if ready {
+		if share.UI.InfoBar != nil {
 			share.UI.InfoBar.Close()
 		}
 	}()
 	a.Run()
+}
+
+func newClient() {
+	share.UI.Client = redmine.NewClient(
+		configs.Config.Redmine.MasterUrl,
+		configs.Config.Redmine.ApiKey,
+	)
 }
 
 func loadMaster(a fyne.App) error {
@@ -136,6 +147,13 @@ func loadMaster(a fyne.App) error {
 
 	// time entry ui
 	share.UI.TimeEntry = time_entry.NewScrollList()
+	err = share.UI.TimeEntry.LoadActivities()
+	if err != nil {
+		log.Error("loadMaster.LoadActivities", err.Error(), zap.Error(err))
+		defer func() {
+			share.UI.InfoBar.SendWarning("can not access to redmine, please restart app")
+		}()
+	}
 	err = share.UI.TimeEntry.LoadCustomFields(buf)
 	if err != nil {
 		return err

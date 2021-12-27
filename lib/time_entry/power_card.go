@@ -57,9 +57,9 @@ func NewPowerCard() *PowerCard {
 }
 
 func (pc *PowerCard) Make(d *models.TimeEntry) fyne.CanvasObject {
-	date := widgets.NewLimitEntry(false, []rune("/"), 10).BindString(d.Date)
+	date := widgets.NewLimitEntry(false, []rune("-"), 10).BindString(d.Date)
 	date.Validator = validation.NewRegexp(
-		`^([2-9][0-9]{3})/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[0-1])$`,
+		`^([2-9][0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[0-1])$`,
 		"not a valid date time",
 	)
 
@@ -92,14 +92,38 @@ func (pc *PowerCard) Make(d *models.TimeEntry) fyne.CanvasObject {
 		),
 	))
 
-	pc.custom = container.NewGridWithColumns(2, widget.NewLabel("time_entry_activities..."))
+	pc.custom = container.NewGridWithColumns(2)
+	_activityLen := len(_activityFields)
+	if _activityLen > 0 {
+		var height float32 = 0
+		if _activityLen >= 10 {
+			height = date.Size().Height
+		}
+		value, _ := d.Activity.Get()
+		if value == "" {
+			for _, field := range _activityFields {
+				if field.IsDefault {
+					value = field.ValueData
+					break
+				}
+			}
+			_ = d.Activity.Set(value)
+		}
+		pc.custom.Add(makeSelectBox(height, _activityFields, &lt.FieldList{
+			BindingData: d.Activity,
+			Value:       value,
+			Name:        "Activities",
+			Default:     value,
+			Required:    false,
+		}))
+	}
 	// TODO: switch interface
 	for _, id := range getCustomFieldKeys(d.CustomFields) {
 		var height float32 = 0
 		if len(_customFields[id]) >= 10 {
 			height = date.Size().Height
 		}
-		pc.custom.Add(makeSelectBox(id, height, d.CustomFields[id]))
+		pc.custom.Add(makeSelectBox(height, _customFields[id], d.CustomFields[id]))
 	}
 	pc.custom.Hide()
 
@@ -132,7 +156,7 @@ func _rectangle() *canvas.Rectangle {
 	return rect
 }
 
-func makeSelectBox(id int, height float32, field *lt.FieldList) *fyne.Container {
+func makeSelectBox(height float32, items []*PossibleList, field *lt.FieldList) *fyne.Container {
 	box := container.NewHBox()
 	space := " "
 	if field.Required {
@@ -144,7 +168,7 @@ func makeSelectBox(id int, height float32, field *lt.FieldList) *fyne.Container 
 	)))
 	box.Add(widget.NewLabel(field.Name + ":"))
 	box.Add(widget.NewSelectEx(
-		makeSelectOptions(_customFields[id]),
+		makeSelectOptions(items),
 		"--- Select one ---",
 		field, height,
 		func(opt widget.SelectOption) {
