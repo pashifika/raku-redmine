@@ -20,6 +20,7 @@ package master
 import (
 	"image/color"
 	"strconv"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -27,11 +28,13 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"go.uber.org/zap"
 
 	ld "raku-redmine/lib/dialog"
 	"raku-redmine/lib/theme/icons"
 	"raku-redmine/share"
 	"raku-redmine/utils/database/models"
+	"raku-redmine/utils/log"
 )
 
 type ToolbarBuilder struct {
@@ -53,8 +56,14 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 	t.Items = []widget.ToolbarItem{
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {
 			ld.NewInputSingle("New issue time entry", "ID or URL:", t._topWindow, func(s string) {
-				issueId, err := strconv.Atoi(s)
+				if len(s) == 0 {
+					return
+				}
+				raws := strings.Split(s, "/")
+				inputId := raws[len(raws)-1]
+				issueId, err := strconv.Atoi(inputId)
 				if err != nil {
+					log.Error("SetToTimeEntry.ContentAdd", err.Error(), zap.String("input", inputId))
 					share.UI.InfoBar.SendError(err)
 					return
 				}
@@ -64,6 +73,7 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 		widget.NewToolbarAction(theme.ViewRefreshIcon(), func() {
 			err := share.UI.TimeEntry.ReloadAll()
 			if err != nil {
+				log.Error("SendError.ViewRefresh", err.Error(), zap.Error(err))
 				share.UI.InfoBar.SendError(err)
 			}
 		}),
@@ -71,7 +81,7 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 		widget.NewToolbarAction(theme.DocumentSaveIcon(), func() {
 			err := share.UI.TimeEntry.SaveAll()
 			if err != nil {
-				share.UI.InfoBar.SendError(err)
+				// TODO: show error log window
 			}
 		}),
 		widget.NewToolbarSeparator(),

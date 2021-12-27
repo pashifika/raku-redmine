@@ -36,6 +36,7 @@ import (
 	"raku-redmine/utils/configs"
 	db "raku-redmine/utils/database"
 	"raku-redmine/utils/database/models"
+	"raku-redmine/utils/log"
 	ur "raku-redmine/utils/resource"
 )
 
@@ -44,9 +45,11 @@ const appName = "Raku redmine"
 var topWindow fyne.Window
 
 func main() {
+	// app init
 	a := app.New()
 	a.SetIcon(resource.AppIconRes)
-	share.UI = share.AppUI{AppName: appName}
+	share.UI = share.AppUI{AppName: appName, AppVer: "v0.1.2"}
+	share.UI.Window = &window.Window{App: a}
 	topWindow = a.NewWindow(appName)
 	topWindow.SetFixedSize(true)
 	topWindow.Resize(lib.MainWindow)
@@ -59,6 +62,7 @@ func main() {
 		dialog.ShowError(err, topWindow)
 		topWindow.Show()
 	}
+	// ui setting init
 	if !files.Exists(conf) {
 		window.Login(a.NewWindow(appName), func(masterUrl, apiKey, fontPath string) error {
 			configs.Config = &configs.Root{
@@ -77,6 +81,7 @@ func main() {
 				return err
 			}
 			topWindow.Show()
+			log.Info("main", "app init.")
 			ready = true
 			return nil
 		})
@@ -93,8 +98,10 @@ func main() {
 		err = loadMaster(a)
 		if err != nil {
 			dialog.ShowError(err, topWindow)
+
 		}
 		topWindow.Show()
+		log.Info("main", "app init.")
 	}
 	defer func() {
 		if ready {
@@ -109,7 +116,10 @@ func loadMaster(a fyne.App) error {
 	if err != nil {
 		return err
 	}
-	err = db.Conn.AutoMigrate(models.TimeEntry{})
+	if share.UI.Debug {
+		db.Conn = db.Conn.Debug()
+	}
+	err = db.Conn.AutoMigrate(models.TimeEntry{}, models.TimeEntryHistory{})
 	if err != nil {
 		return err
 	}

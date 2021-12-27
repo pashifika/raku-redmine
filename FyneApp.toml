@@ -1,8 +1,8 @@
-Website = "https://example.com"
+Website = "https://github.com/pashifika/raku-redmine"
 
 [Details]
   Icon = "resource/app_icon.png"
   Name = "Raku redmine"
   ID = "com.raku-redmine.app"
-  Version = "1.0.0"
+  Version = "0.1.2"
   Build = 14

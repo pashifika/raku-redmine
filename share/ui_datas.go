@@ -28,12 +28,20 @@ var UI AppUI
 
 type AppUI struct {
 	AppName    string
+	AppVer     string
 	UserDir    string
 	SystemFont string
 	OS         string
+	ARCH       string
+	Debug      bool
+	Window     Window
 	TimeEntry  TimeEntry
 	Toolbar    Toolbar
 	InfoBar    InfoBar
+}
+
+type Window interface {
+	About()
 }
 
 type Toolbar interface {

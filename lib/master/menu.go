@@ -49,6 +49,10 @@ func NewMenu(a fyne.App, w fyne.Window) *fyne.MainMenu {
 			u, _ := url.Parse("https://github.com/pashifika/raku-redmine")
 			_ = a.OpenURL(u)
 		}),
+		fyne.NewMenuItemSeparator(),
+		fyne.NewMenuItem("About", func() {
+			share.UI.Window.About()
+		}),
 	)
 
 	// a quit item will be appended to our first (File) menu

@@ -22,12 +22,14 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"github.com/goccy/go-json"
+	"go.uber.org/zap"
 
 	lt "raku-redmine/lib/types"
 	"raku-redmine/share"
 	db "raku-redmine/utils/database"
 	"raku-redmine/utils/database/models"
 	"raku-redmine/utils/database/types"
+	"raku-redmine/utils/log"
 )
 
 type ScrollList struct {
@@ -149,21 +151,44 @@ func (s *ScrollList) ReloadAll() error {
 	return nil
 }
 
+// SaveAll time entry data and to database and return the last database error
 func (s *ScrollList) SaveAll() error {
+	var last error
 	for _, data := range s.timeEntry {
 		var count int64
 		err := db.Conn.Model(data).Where(`id = ?`, data.UID).Count(&count).Error
 		if err != nil {
+			log.Error("ScrollList.SaveAll.Count", err.Error(),
+				zap.String("id", data.UID.String()),
+				zap.Int("issue_id", data.IssueId),
+			)
 			share.UI.InfoBar.SendError(err)
+			last = err
+			continue
 		}
 		if count == 0 {
 			err = db.Conn.Create(data).Error
 		} else {
-			err = db.Conn.Debug().Omit("id,issue_id").Updates(data).Error
+			err = db.Conn.Omit("id,issue_id").Updates(data).Error
 		}
 		if err != nil {
+			log.Error("ScrollList.SaveAll.CreateOrUpdates", err.Error(),
+				zap.String("id", data.UID.String()),
+				zap.Int("issue_id", data.IssueId),
+			)
 			share.UI.InfoBar.SendError(err)
+			last = err
+		} else {
+			err = db.Conn.Create(models.MakeTimeEntryHistory(data)).Error
+			if err != nil {
+				log.Error("ScrollList.SaveAll.CreateHistory", err.Error(),
+					zap.String("id", data.UID.String()),
+					zap.Int("issue_id", data.IssueId),
+				)
+				share.UI.InfoBar.SendError(err)
+				last = err
+			}
 		}
 	}
-	return nil
+	return last
 }

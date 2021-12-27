@@ -11,6 +11,7 @@ import (
 
 	"raku-redmine/share"
 	db "raku-redmine/utils/database"
+	"raku-redmine/utils/log"
 )
 
 func getAppData() (conf string, err error) {
@@ -34,19 +35,26 @@ func getAppData() (conf string, err error) {
 		err = errors.New("not support this os")
 		return
 	}
-	//goland:noinspection GoBoolExpressions
-	if err == nil && isRelease {
-		if !files.Exists(conf) {
-			err = mkdirIfNotExist(conf)
-			if err != nil {
-				return
-			}
+	// logger init
+	logPath := filepath.Join(conf, "logs")
+	if !files.Exists(logPath) {
+		err = mkdirIfNotExist(logPath)
+		if err != nil {
+			return
 		}
+	}
+	//goland:noinspection GoBoolExpressions
+	log.Init(!isRelease, filepath.Join(logPath, "app.log"), "20060102", 10, 5, 5)
+	//goland:noinspection GoBoolExpressions
+	if isRelease {
 		db.DsnConf = filepath.Join(conf, "setting.db")
 		confCustomFields = filepath.Join(conf, "custom_fields.json")
 	}
 	share.UI.UserDir = conf
 	share.UI.OS = runtime.GOOS
+	share.UI.ARCH = runtime.GOARCH
+	//goland:noinspection GoBoolExpressions
+	share.UI.Debug = !isRelease
 	conf = filepath.Join(conf, "setting.ini")
 
 	return
@@ -54,7 +62,7 @@ func getAppData() (conf string, err error) {
 
 func mkdirIfNotExist(path string) error {
 	if _, err := os.Stat(path); err != nil {
-		if err = os.Mkdir(path, 0700); err != nil {
+		if err = os.MkdirAll(path, 0700); err != nil {
 			return err
 		}
 	}

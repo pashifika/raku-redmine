@@ -5,8 +5,10 @@ go 1.17
 require (
 	fyne.io/fyne/v2 v2.1.2
 	github.com/goccy/go-json v0.8.1
+	github.com/pashifika/rollingFiles v2.2.1+incompatible
 	github.com/pashifika/util v0.1.2
 	github.com/stretchr/testify v1.7.0
+	go.uber.org/zap v1.19.1
 	gopkg.in/ini.v1 v1.66.2
 	gorm.io/driver/sqlite v1.2.6
 	gorm.io/gorm v1.22.4
@@ -28,11 +30,13 @@ require (
 	github.com/srwiley/oksvg v0.0.0-20200311192757-870daf9aa564 // indirect
 	github.com/srwiley/rasterx v0.0.0-20200120212402-85cb7272f5e9 // indirect
 	github.com/yuin/goldmark v1.3.8 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/image v0.0.0-20200430140353-33d19683fad8 // indirect
 	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/text v0.3.7 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 replace fyne.io/fyne/v2 v2.1.2 => ../fyne

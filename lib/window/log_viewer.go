@@ -1,4 +1,4 @@
-// Package widgets
+// Package window
 /*
  * Version: 1.0.0
  * Copyright (c) 2021. Pashifika
@@ -15,32 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package widgets
+package window
 
 import (
-	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"go.uber.org/zap"
 
 	"raku-redmine/share"
-	"raku-redmine/utils/log"
 )
 
-func NewEntryWithData(data binding.String) *widget.Entry {
-	entry := widget.NewEntry()
-	oldData, err := data.Get()
-	if err != nil {
-		log.Error("NewEntryWithData.binding.Get", err.Error())
-		share.UI.InfoBar.SendError(err)
-	} else {
-		entry.SetText(oldData)
-	}
-	entry.OnChanged = func(s string) {
-		err = data.Set(s)
-		if err != nil {
-			log.Error("NewEntryWithData.OnChanged.Set", err.Error(), zap.String("input", s))
-			share.UI.InfoBar.SendError(err)
-		}
-	}
-	return entry
+func LogViewer(w fyne.Window) {
+	w.SetTitle(share.UI.AppName + " - Logs Viewer")
+	w.CenterOnScreen()
+
+	top := container.NewVBox(
+		container.NewHBox(),
+		widget.NewSeparator(),
+	)
+	w.SetContent(container.NewBorder(
+		top, nil, nil, nil,
+	))
 }

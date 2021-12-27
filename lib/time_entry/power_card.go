@@ -18,7 +18,6 @@
 package time_entry
 
 import (
-	"fmt"
 	"image/color"
 	"net/url"
 	"sort"
@@ -31,11 +30,13 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"go.uber.org/zap"
 
 	lt "raku-redmine/lib/types"
 	"raku-redmine/lib/widgets"
 	"raku-redmine/utils/database/models"
 	"raku-redmine/utils/database/types"
+	"raku-redmine/utils/log"
 )
 
 var (
@@ -147,7 +148,10 @@ func makeSelectBox(id int, height float32, field *lt.FieldList) *fyne.Container 
 		"--- Select one ---",
 		field, height,
 		func(opt widget.SelectOption) {
-			fmt.Println("NewSelectEx:", opt)
+			log.Debug("NewSelectEx.OnChanged", "opt",
+				zap.String("Label", opt.Label()),
+				zap.String("Value", opt.Value()),
+			)
 		},
 	).SyncSelected())
 	return box

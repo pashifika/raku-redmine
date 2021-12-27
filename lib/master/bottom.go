@@ -66,7 +66,6 @@ func (b *InfoBarBuilder) SendWarning(msg string) {
 }
 
 func (b *InfoBarBuilder) SendError(err error) {
-	// TODO: save log
 	b._msg <- types.MsgData{
 		Type: types.MsgTypeError,
 		Text: err.Error(),
