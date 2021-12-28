@@ -83,7 +83,7 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 			})
 		}),
 		widget.NewToolbarAction(theme.DeleteIcon(), func() {
-			dialog.ShowConfirm("WARNING", "Are you sure delete no checked items?", func(b bool) {
+			dialog.ShowConfirm("WARNING", "Are you sure delete not checked items?", func(b bool) {
 				if b {
 					share.UI.TimeEntry.DeleteNoChecked(false)
 				}

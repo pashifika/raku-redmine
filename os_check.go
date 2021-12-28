@@ -46,7 +46,7 @@ func getAppData() (conf string, err error) {
 		conf = filepath.Join(conf, "configs")
 		share.UI.SystemFont = "C:/Windows/Fonts/meiryo.ttc"
 	case "darwin":
-		conf = filepath.Join(home, ".raku-mine")
+		conf = filepath.Join(home, ".raku-redmine")
 	case "linux":
 		err = errors.New("not support this os")
 		return

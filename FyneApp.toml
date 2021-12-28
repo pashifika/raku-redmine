@@ -4,5 +4,5 @@ Website = "https://github.com/pashifika/raku-redmine"
   Icon = "resource/app_icon.png"
   Name = "Raku redmine"
   ID = "com.raku-redmine.app"
-  Version = "0.1.4"
-  Build = 19
+  Version = "0.1.5"
+  Build = 28
