@@ -227,15 +227,7 @@ func (s *ScrollList) SaveAll() error {
 			share.UI.InfoBar.SendError(err)
 			last = err
 		} else {
-			err = db.Conn.Create(models.MakeTimeEntryHistory(data)).Error
-			if err != nil {
-				log.Error("ScrollList.SaveAll.CreateHistory", err.Error(),
-					zap.String("id", data.UID.String()),
-					zap.Int("issue_id", data.IssueId),
-				)
-				share.UI.InfoBar.SendError(err)
-				last = err
-			}
+
 		}
 	}
 	s._mu.RUnlock()
@@ -274,17 +266,26 @@ func (s *ScrollList) PostChecked() {
 	s._mu.RLock()
 	defer s._mu.RUnlock()
 	s.findCheck(true, func(index int) {
-		data, err := models.MakeClientResponse(s.timeEntry[index], my.Id)
+		timeEntry := s.timeEntry[index]
+		data, err := models.MakeClientResponse(timeEntry, my.Id)
 		if err != nil {
 			log.Error("ScrollList.PostChecked.MakeClientResponse", err.Error())
 			share.UI.InfoBar.SendError(err)
 			return
 		}
-		_, err = share.UI.Client.CreateTimeEntry(data)
+		res, err := share.UI.Client.CreateTimeEntry(data)
 		if err != nil {
 			log.Error("ScrollList.PostChecked.ClientTimeEntry", err.Error())
 			share.UI.InfoBar.SendError(err)
 			return
+		}
+		err = db.Conn.Create(models.MakeTimeEntryHistory(res.Id, timeEntry)).Error
+		if err != nil {
+			log.Error("ScrollList.PostChecked.CreateHistory", err.Error(),
+				zap.Int("id", res.Id),
+				zap.String("tid", timeEntry.UID.String()),
+			)
+			share.UI.InfoBar.SendError(err)
 		}
 	})
 	share.UI.InfoBar.SendInfo("post to redmine time entry item complete")

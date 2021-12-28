@@ -26,7 +26,9 @@ import (
 )
 
 type TimeEntryHistory struct {
-	UID          xid.ID             `gorm:"column:id;type:varchar(20);index;primaryKey;autoIncrement:false"`
+	ID uint `gorm:"primarykey"`
+
+	TID          xid.ID             `gorm:"column:t_id;type:varchar(20);index"`
 	IssueId      int                `gorm:"column:issue_id;type:integer;index;not null"`
 	Date         types.StrToDate    `gorm:"column:date;type:timestamp;not null"`
 	Time         types.StrToFloat   `gorm:"column:time;type:numeric;not null"`
@@ -45,9 +47,10 @@ func (TimeEntryHistory) TableName() string {
 // ------ to ui
 //
 
-func MakeTimeEntryHistory(te *TimeEntry) *TimeEntryHistory {
+func MakeTimeEntryHistory(timeEntryId int, te *TimeEntry) *TimeEntryHistory {
 	return &TimeEntryHistory{
-		UID:          xid.New(),
+		ID:           uint(timeEntryId),
+		TID:          te.UID,
 		IssueId:      te.IssueId,
 		Date:         te.Date,
 		Time:         te.Time,
