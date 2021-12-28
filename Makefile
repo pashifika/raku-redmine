@@ -3,6 +3,7 @@ GO_PATH=`go env GOPATH`
 init:
 	cd ../
 	git clone git@github.com:pashifika/fyne.git
+	cd fyne
 	git checkout origin/release/fix_v2.1.2 -b release/fix_v2.1.2
 	cd ../raku-redmine/
 	go mod download
