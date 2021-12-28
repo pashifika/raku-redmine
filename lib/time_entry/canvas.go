@@ -21,6 +21,7 @@ import (
 	"errors"
 	"strconv"
 	"sync"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -28,6 +29,7 @@ import (
 	"github.com/goccy/go-json"
 	"go.uber.org/zap"
 
+	"raku-redmine/lib"
 	lt "raku-redmine/lib/types"
 	"raku-redmine/share"
 	db "raku-redmine/utils/database"
@@ -187,6 +189,25 @@ func (s *ScrollList) ReloadAll() error {
 				if _, ok := s.Last[id]; !ok {
 					delete(data.CustomFields, id)
 				}
+			}
+			deleteActivity := true
+			if len(_activityFields) > 0 {
+				activity, _ := data.Activity.Get()
+				for _, field := range _activityFields {
+					if field.ValueData == activity {
+						deleteActivity = false
+						break
+					}
+				}
+			}
+			if deleteActivity {
+				_ = data.Activity.Set("")
+			}
+
+			// load checked item to today
+			checked, _ := data.Checked.Get()
+			if checked {
+				_ = data.Date.Set(time.Now().Format(lib.DateLayout))
 			}
 			s.vbox.Objects[i] = NewPowerCard().Make(data)
 		}
