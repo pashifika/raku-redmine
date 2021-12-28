@@ -2,9 +2,11 @@ package redmine
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type Client struct {
@@ -19,7 +21,25 @@ var DefaultLimit int = -1  // "-1" means "No setting"
 var DefaultOffset int = -1 //"-1" means "No setting"
 
 func NewClient(endpoint, apikey string) *Client {
-	return &Client{endpoint, apikey, http.DefaultClient, DefaultLimit, DefaultOffset}
+	c := &http.Client{
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   15 * time.Second,
+				KeepAlive: 15 * time.Second,
+			}).DialContext,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ResponseHeaderTimeout: 10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+		Timeout: 30 * time.Second,
+	}
+	return &Client{
+		endpoint: endpoint,
+		apikey:   apikey,
+		Client:   c,
+		Limit:    DefaultLimit,
+		Offset:   DefaultOffset,
+	}
 }
 
 // URLWithFilter return string url by concat endpoint, path and filter
