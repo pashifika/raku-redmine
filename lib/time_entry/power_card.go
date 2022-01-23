@@ -20,6 +20,7 @@ package time_entry
 import (
 	"image/color"
 	"net/url"
+	"path"
 	"sort"
 	"strconv"
 
@@ -200,9 +201,10 @@ func makeSelectOptions(items []*PossibleList) []widget.SelectOption {
 
 func makeIssuesHyperlink(id int) *widget.Hyperlink {
 	idStr := strconv.Itoa(id)
-	link, err := url.Parse("http://localhost/issues/" + idStr)
+	link, err := url.Parse(MasterUrl)
 	if err != nil {
 		fyne.LogError("Could not parse URL", err)
 	}
+	link.Path = path.Join(link.Path, "issues", idStr)
 	return widget.NewHyperlink("#"+idStr, link)
 }

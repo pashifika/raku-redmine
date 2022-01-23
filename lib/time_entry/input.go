@@ -26,6 +26,8 @@ import (
 var (
 	_customFields   map[int][]*PossibleList // TODO: switch interface
 	_activityFields []*PossibleList
+
+	MasterUrl string
 )
 
 type CustomField struct {

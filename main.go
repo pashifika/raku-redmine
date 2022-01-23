@@ -173,6 +173,7 @@ func loadMaster(a fyne.App) error {
 
 	// time entry ui
 	share.UI.TimeEntry = time_entry.NewScrollList()
+	time_entry.MasterUrl = configs.Config.Redmine.MasterUrl
 	err = share.UI.TimeEntry.LoadActivities()
 	if err != nil {
 		log.Error("loadMaster.LoadActivities", err.Error(), zap.Error(err))
