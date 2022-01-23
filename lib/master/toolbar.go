@@ -55,7 +55,7 @@ func (t *ToolbarBuilder) Build() fyne.CanvasObject {
 func (t *ToolbarBuilder) SetToTimeEntry() {
 	t.Items = []widget.ToolbarItem{
 		widget.NewToolbarAction(theme.ContentAddIcon(), func() {
-			ld.NewInputSingle("New issue time entry", "ID or URL:", t._topWindow, func(s string) {
+			ld.NewIssueTimeEntry(t._topWindow, func(s string, isLast bool) {
 				if len(s) == 0 {
 					return
 				}
@@ -76,9 +76,14 @@ func (t *ToolbarBuilder) SetToTimeEntry() {
 					return
 				}
 				// add to ui
-				share.UI.TimeEntry.Prepend(models.MakeTimeEntryUI(
+				teUI := models.MakeTimeEntryUI(
 					res.Project.Id, issueId, res.Subject, share.UI.TimeEntry.LastCustomFields(),
-				))
+				)
+				if isLast {
+					share.UI.TimeEntry.Append(teUI)
+				} else {
+					share.UI.TimeEntry.Prepend(teUI)
+				}
 				share.UI.InfoBar.SendInfo("added time entry item.")
 			})
 		}),

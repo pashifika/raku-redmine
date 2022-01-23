@@ -38,3 +38,21 @@ func NewInputSingle(title, label string, w fyne.Window, callback func(s string))
 		}, w,
 	)
 }
+
+func NewIssueTimeEntry(w fyne.Window, callback func(s string, isLast bool)) {
+	input := widget.NewEntry()
+	var isLast bool
+	check := widget.NewCheck("", func(b bool) { isLast = b })
+	dialog.ShowForm("New issue time entry", "OK", "Cancel",
+		[]*widget.FormItem{
+			widget.NewFormItem("ID or URL:", container.NewGridWrap(fyne.NewSize(w.Canvas().Size().Width/2, 40), input)),
+			widget.NewFormItem("Add to last:", container.NewGridWrap(fyne.NewSize(w.Canvas().Size().Width/2, 40), check)),
+		},
+		func(b bool) {
+			if !b {
+				return
+			}
+			callback(input.Text, isLast)
+		}, w,
+	)
+}
