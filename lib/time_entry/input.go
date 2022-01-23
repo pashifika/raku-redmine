@@ -17,6 +17,12 @@
  */
 package time_entry
 
+import (
+	"io"
+
+	"github.com/goccy/go-json"
+)
+
 var (
 	_customFields   map[int][]*PossibleList // TODO: switch interface
 	_activityFields []*PossibleList
@@ -49,4 +55,15 @@ func (p *PossibleList) Label() string {
 
 func (p *PossibleList) Value() string {
 	return p.ValueData
+}
+
+func LoadCustomFieldJSON(r io.Reader) ([]*CustomField, error) {
+	var fields struct {
+		Data []*CustomField `json:"custom_fields"`
+	}
+	err := json.NewDecoder(r).Decode(&fields)
+	if err != nil {
+		return nil, err
+	}
+	return fields.Data, nil
 }

@@ -18,13 +18,14 @@
 package main
 
 import (
-	"io/ioutil"
+	"errors"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/pashifika/util/files"
+	"github.com/pashifika/util/mem"
 	"go.uber.org/zap"
 
 	"raku-redmine/lib"
@@ -67,7 +68,7 @@ func main() {
 	}
 	// ui setting init
 	if !files.Exists(conf) {
-		window.Login(a.NewWindow(appName), func(masterUrl, apiKey, fontPath string) error {
+		window.Login(a.NewWindow(appName), func(masterUrl, apiKey, fontPath string, customFields *mem.FakeIO) error {
 			configs.Config = &configs.Root{
 				Font: configs.Font{Path: fontPath},
 				Redmine: configs.Redmine{
@@ -75,7 +76,24 @@ func main() {
 					ApiKey:    apiKey,
 				},
 			}
-			err := configs.Save(conf)
+			f, err := files.FileOpen(confCustomFields, "w")
+			if err != nil {
+				return err
+			}
+			size := customFields.Size()
+			customFields.SeekStart()
+			n, err := f.ReadFrom(customFields)
+			if err != nil {
+				return err
+			}
+			if n != size {
+				return errors.New("write file size error")
+			}
+			err = f.Close()
+			if err != nil {
+				return err
+			}
+			err = configs.Save(conf)
 			if err != nil {
 				return err
 			}
@@ -138,11 +156,19 @@ func loadMaster(a fyne.App) error {
 	if err != nil {
 		return err
 	}
-	//goland:noinspection GoUnhandledErrorResult
-	defer file.Close()
-	buf, err := ioutil.ReadAll(file)
+	info, err := file.Stat()
 	if err != nil {
 		return err
+	}
+	buf := new(mem.FakeIO)
+	n, err := buf.ReadFrom(file)
+	if err != nil {
+		return err
+	}
+	size := info.Size()
+	_ = file.Close()
+	if n != size {
+		return errors.New("read file size error")
 	}
 
 	// time entry ui
@@ -155,6 +181,7 @@ func loadMaster(a fyne.App) error {
 		}()
 	}
 	err = share.UI.TimeEntry.LoadCustomFields(buf)
+	buf.Reset()
 	if err != nil {
 		return err
 	}

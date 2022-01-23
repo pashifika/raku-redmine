@@ -18,6 +18,8 @@
 package share
 
 import (
+	"io"
+
 	"fyne.io/fyne/v2/container"
 
 	"raku-redmine/utils/database/models"
@@ -62,7 +64,7 @@ type TimeEntry interface {
 	Append(d *models.TimeEntry)
 	Prepend(d *models.TimeEntry)
 	LoadActivities() error
-	LoadCustomFields(data []byte) error
+	LoadCustomFields(r io.Reader) error
 	LastCustomFields() types.CustomFields
 	Scroll() *container.Scroll
 	ReloadAll() error

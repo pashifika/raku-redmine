@@ -24,11 +24,16 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func NewInputSingle(title, label string, w fyne.Window, callback func(s string)) {
+func NewInputSingle(title, label string, high float32, w fyne.Window, callback func(s string)) {
 	input := widget.NewEntry()
+	if high > 0 {
+		input.MultiLine = true
+	} else {
+		high = 40
+	}
 	dialog.ShowForm(title, "OK", "Cancel",
 		[]*widget.FormItem{
-			widget.NewFormItem(label, container.NewGridWrap(fyne.NewSize(w.Canvas().Size().Width/2, 40), input)),
+			widget.NewFormItem(label, container.NewGridWrap(fyne.NewSize(w.Canvas().Size().Width/2, high), input)),
 		},
 		func(b bool) {
 			if !b {

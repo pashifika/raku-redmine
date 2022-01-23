@@ -1,7 +1,7 @@
-// Package lib
+// Package dialog
 /*
  * Version: 1.0.0
- * Copyright (c) 2021. Pashifika
+ * Copyright (c) 2022. Pashifika
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lib
+package dialog
 
 import (
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 )
 
-var (
-	MainWindow = fyne.Size{
-		Width:  680,
-		Height: 700,
-	}
-	LoginWindow = fyne.Size{
-		Width:  560,
-		Height: 445,
-	}
-	DateLayout = "2006-01-02"
-)
+func ShowFileOpen(w fyne.Window, extensions []string, callCanReader func(reader fyne.URIReadCloser) error) {
+	fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+		if err != nil {
+			dialog.ShowError(err, w)
+			return
+		}
+		if reader == nil {
+			return
+		}
+		if callCanReader != nil {
+			err = callCanReader(reader)
+			if err != nil {
+				dialog.ShowError(err, w)
+			}
+		}
+	}, w)
+	fd.SetFilter(storage.NewExtensionFileFilter(extensions))
+	fd.Show()
+}

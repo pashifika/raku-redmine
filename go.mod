@@ -6,7 +6,7 @@ require (
 	fyne.io/fyne/v2 v2.1.2
 	github.com/goccy/go-json v0.8.1
 	github.com/pashifika/rollingFiles v2.2.1+incompatible
-	github.com/pashifika/util v0.1.2
+	github.com/pashifika/util v0.2.4
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.19.1
 	gopkg.in/ini.v1 v1.66.2

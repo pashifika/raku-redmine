@@ -19,7 +19,9 @@ package window
 
 import (
 	"errors"
+	"io"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -30,18 +32,24 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/pashifika/util/files"
+	"github.com/pashifika/util/mem"
 
 	"raku-redmine/lib"
+	ld "raku-redmine/lib/dialog"
+	"raku-redmine/lib/time_entry"
 	"raku-redmine/share"
 )
 
-func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) error) {
+const _defaultCustomFieldsJSON = `{"custom_fields": []}`
+
+func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string, customFields *mem.FakeIO) error) {
 	w.CenterOnScreen()
 	w.SetFixedSize(true)
 	w.Resize(lib.LoginWindow)
 	w.SetTitle(share.UI.AppName + " - Init")
 
 	// input setting
+	jsonData := new(mem.FakeIO)
 	redmineURL := &widget.Entry{
 		PlaceHolder: "https://(you Redmine or RedMica site)",
 		Wrapping:    fyne.TextTruncate,
@@ -51,6 +59,31 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) e
 		PlaceHolder: "My account -> API Key",
 		Wrapping:    fyne.TextTruncate,
 		Validator:   validation.NewRegexp(`^[0-9a-zA-Z]{10,}$`, "not a valid api key"),
+	}
+	customFieldsCheck := &widget.Check{
+		Text:    "",
+		Checked: false,
+	}
+	customFieldsCheck.Disable()
+	customFieldsLoad := &widget.Button{
+		Text: "Load JSON data",
+		OnTapped: func() {
+			ld.ShowFileOpen(w, []string{".json"}, func(reader fyne.URIReadCloser) error {
+				customFieldsCheck.SetChecked(false)
+				jsonData.Reset()
+				_, err := io.Copy(jsonData, reader)
+				if err != nil {
+					return err
+				}
+				data, err := time_entry.LoadCustomFieldJSON(jsonData)
+				if err != nil {
+					return err
+				}
+				customFieldsCheck.Text = "Field(" + strconv.Itoa(len(data)) + ")"
+				customFieldsCheck.SetChecked(true)
+				return nil
+			})
+		},
 	}
 	fontPath := &widget.Entry{
 		Text:        share.UI.SystemFont,
@@ -87,7 +120,10 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) e
 				}
 
 				if onProcessed != nil {
-					err := onProcessed(strings.TrimRight(redmineURL.Text, "/"), redmineKey.Text, fontPath.Text)
+					if jsonData.Size() == 0 {
+						_, _ = jsonData.WriteString(_defaultCustomFieldsJSON)
+					}
+					err := onProcessed(strings.TrimRight(redmineURL.Text, "/"), redmineKey.Text, fontPath.Text, jsonData)
 					if err != nil {
 						dialog.ShowError(err, w)
 						return
@@ -104,11 +140,16 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) e
 			widget.NewCard("Redmine setting", "", container.NewVBox(
 				container.NewHBox(
 					widget.NewLabel("Master Url:"),
-					container.NewGridWrap(fyne.NewSize(340, 40), redmineURL),
+					container.NewGridWrap(fyne.NewSize(435, 40), redmineURL),
 				),
 				container.NewHBox(
 					widget.NewLabel("API key:"),
-					container.NewGridWrap(fyne.NewSize(340, 40), redmineKey),
+					container.NewGridWrap(fyne.NewSize(435, 40), redmineKey),
+				),
+				container.NewHBox(
+					widget.NewLabel("Custom field:"),
+					customFieldsCheck,
+					customFieldsLoad,
 				),
 			)),
 			widget.NewCard("App setting", "", container.NewVBox(
@@ -118,7 +159,7 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string) e
 				)),
 				container.NewHBox(
 					widget.NewLabel("Font Path:"),
-					container.NewGridWrap(fyne.NewSize(340, 40), fontPath),
+					container.NewGridWrap(fyne.NewSize(435, 40), fontPath),
 				),
 			)),
 		),

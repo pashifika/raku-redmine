@@ -19,6 +19,7 @@ package time_entry
 
 import (
 	"errors"
+	"io"
 	"strconv"
 	"sync"
 	"time"
@@ -26,7 +27,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
-	"github.com/goccy/go-json"
 	"go.uber.org/zap"
 
 	"raku-redmine/lib"
@@ -97,19 +97,16 @@ func (s *ScrollList) LastCustomFields() types.CustomFields {
 }
 
 // LoadCustomFields unmarshal the redmine /custom_fields.json API data to default CustomFields
-func (s *ScrollList) LoadCustomFields(data []byte) error {
-	_customFields = map[int][]*PossibleList{}
-	var fields struct {
-		Data []*CustomField `json:"custom_fields"`
-	}
-	err := json.Unmarshal(data, &fields)
+func (s *ScrollList) LoadCustomFields(r io.Reader) error {
+	fields, err := LoadCustomFieldJSON(r)
 	if err != nil {
 		return err
 	}
+	_customFields = map[int][]*PossibleList{}
 
 	s._mu.Lock()
 	s.Last = make(types.CustomFields)
-	for _, field := range fields.Data {
+	for _, field := range fields {
 		if field.CustomizedType == "time_entry" && field.Visible {
 			// TODO: switch interface
 			switch field.FieldFormat {
