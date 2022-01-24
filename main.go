@@ -53,7 +53,7 @@ func main() {
 	// app init
 	a := app.New()
 	a.SetIcon(resource.AppIconRes)
-	share.UI = share.AppUI{AppName: appName, AppVer: "v0.1.5"}
+	share.UI = share.AppUI{AppName: appName, AppVer: "v0.2.1"}
 	topWindow = a.NewWindow(appName)
 	topWindow.CenterOnScreen()
 	topWindow.SetFixedSize(true)
