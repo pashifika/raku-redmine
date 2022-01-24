@@ -19,6 +19,8 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -62,11 +64,19 @@ func main() {
 	var ready bool
 	conf, err := getAppData()
 	if err != nil {
+		log.Error("main.init", "getAppData error", zap.Error(err))
 		dialog.ShowError(err, topWindow)
 		topWindow.Show()
 	}
-	share.UI.Window = &window.Window{ConfPath: conf}
+	// prevent application multiplexing
+	err = tryLock(filepath.Join(filepath.Dir(conf), ".lock"))
+	if err != nil {
+		log.Error("main._lock", "lock error", zap.Error(err))
+		os.Exit(1)
+	}
+
 	// ui setting init
+	share.UI.Window = &window.Window{ConfPath: conf}
 	if !files.Exists(conf) {
 		window.Login(a.NewWindow(appName), func(masterUrl, apiKey, fontPath string, customFields *mem.FakeIO) error {
 			configs.Config = &configs.Root{
@@ -128,6 +138,10 @@ func main() {
 	defer func() {
 		if share.UI.InfoBar != nil {
 			share.UI.InfoBar.Close()
+		}
+		err = _lock.Unlock()
+		if err != nil {
+			log.Error("main._lock", "unlock error", zap.Error(err))
 		}
 	}()
 	a.Run()
