@@ -52,7 +52,6 @@ func main() {
 	a := app.New()
 	a.SetIcon(resource.AppIconRes)
 	share.UI = share.AppUI{AppName: appName, AppVer: "v0.1.5"}
-	share.UI.Window = &window.Window{App: a}
 	topWindow = a.NewWindow(appName)
 	topWindow.CenterOnScreen()
 	topWindow.SetFixedSize(true)
@@ -66,6 +65,7 @@ func main() {
 		dialog.ShowError(err, topWindow)
 		topWindow.Show()
 	}
+	share.UI.Window = &window.Window{ConfPath: conf}
 	// ui setting init
 	if !files.Exists(conf) {
 		window.Login(a.NewWindow(appName), func(masterUrl, apiKey, fontPath string, customFields *mem.FakeIO) error {
@@ -207,6 +207,7 @@ func loadMaster(a fyne.App) error {
 	// master window settings
 	topWindow.SetContent(masterBorder(topWindow))
 	topWindow.SetMaster()
+	share.UI.Window.SetMaster(topWindow)
 	return nil
 }
 

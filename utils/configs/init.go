@@ -32,11 +32,7 @@ func Load(path string) error {
 	if Config == nil {
 		Config = &Root{Font: Font{}, Redmine: Redmine{}}
 	}
-	err = cfg.MapTo(Config)
-	if err != nil {
-		return err
-	}
-	return nil
+	return cfg.MapTo(Config)
 }
 
 // Save Config data to file system.
@@ -46,9 +42,5 @@ func Save(path string) error {
 	if err != nil {
 		return err
 	}
-	err = cfg.SaveTo(path)
-	if err != nil {
-		return err
-	}
-	return nil
+	return cfg.SaveTo(path)
 }

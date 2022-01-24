@@ -31,7 +31,7 @@ import (
 )
 
 func (win *Window) About() {
-	w := win.App.NewWindow("About")
+	w := fyne.CurrentApp().NewWindow("About")
 	w.CenterOnScreen()
 	w.SetFixedSize(true)
 	w.Resize(fyne.NewSize(400, 310))

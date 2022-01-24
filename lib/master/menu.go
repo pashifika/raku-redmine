@@ -22,8 +22,10 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
+	"go.uber.org/zap"
 
 	"raku-redmine/share"
+	"raku-redmine/utils/log"
 )
 
 func NewMenu(a fyne.App, w fyne.Window) *fyne.MainMenu {
@@ -31,18 +33,19 @@ func NewMenu(a fyne.App, w fyne.Window) *fyne.MainMenu {
 		u, err := url.Parse(share.UI.UserDir)
 		if err != nil {
 			dialog.ShowError(err, w)
+			log.Error("openConfDir", "url.Parse error", zap.Error(err))
 			return
 		}
 		err = a.OpenURL(u)
 		if err != nil {
 			dialog.ShowError(err, w)
+			log.Error("openConfDir", "OpenURL error", zap.Error(err))
 			return
 		}
 	})
 	settingsItem := fyne.NewMenuItem("Settings", func() {
-		// TODO: do it...
+		share.UI.Window.Setting()
 	})
-	settingsItem.Disabled = true
 
 	helpMenu := fyne.NewMenu("Help",
 		fyne.NewMenuItem("Documentation", func() {

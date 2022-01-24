@@ -18,26 +18,22 @@
 package window
 
 import (
-	"errors"
-	"io"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/pashifika/util/files"
 	"github.com/pashifika/util/mem"
+	"go.uber.org/zap"
 
 	"raku-redmine/lib"
-	ld "raku-redmine/lib/dialog"
-	"raku-redmine/lib/time_entry"
+	"raku-redmine/lib/window/settings"
 	"raku-redmine/share"
+	"raku-redmine/utils/log"
 )
 
 const _defaultCustomFieldsJSON = `{"custom_fields": []}`
@@ -49,54 +45,10 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string, c
 	w.SetTitle(share.UI.AppName + " - Init")
 
 	// input setting
-	jsonData := new(mem.FakeIO)
-	redmineURL := &widget.Entry{
-		PlaceHolder: "https://(you Redmine or RedMica site)",
-		Wrapping:    fyne.TextTruncate,
-		Validator:   validation.NewRegexp(`^http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]){5,}$`, "not a valid url"),
-	}
-	redmineKey := &widget.Entry{
-		PlaceHolder: "My account -> API Key",
-		Wrapping:    fyne.TextTruncate,
-		Validator:   validation.NewRegexp(`^[0-9a-zA-Z]{10,}$`, "not a valid api key"),
-	}
-	customFieldsCheck := &widget.Check{
-		Text:    "",
-		Checked: false,
-	}
-	customFieldsCheck.Disable()
-	customFieldsLoad := &widget.Button{
-		Text: "Load JSON data",
-		OnTapped: func() {
-			ld.ShowFileOpen(w, []string{".json"}, func(reader fyne.URIReadCloser) error {
-				customFieldsCheck.SetChecked(false)
-				jsonData.Reset()
-				_, err := io.Copy(jsonData, reader)
-				if err != nil {
-					return err
-				}
-				data, err := time_entry.LoadCustomFieldJSON(jsonData)
-				if err != nil {
-					return err
-				}
-				customFieldsCheck.Text = "Field(" + strconv.Itoa(len(data)) + ")"
-				customFieldsCheck.SetChecked(true)
-				return nil
-			})
-		},
-	}
-	fontPath := &widget.Entry{
-		Text:        share.UI.SystemFont,
-		PlaceHolder: "(you ttf font file full path)",
-		Wrapping:    fyne.TextTruncate,
-		Validator: func(s string) error {
-			if !files.Exists(s) {
-				return errors.New("file does not exist")
-			} else {
-				return nil
-			}
-		},
-	}
+	redmineURL := settings.EntryOfRedmineURL()
+	redmineKey := settings.EntryOfRedmineKey()
+	jsonData, customFieldsCheck, customFieldsLoad := settings.EntriesOfCustomFieldsLoad(w)
+	fontPath := settings.EntryOfFontPath()
 
 	bottom := container.NewVBox(
 		widget.NewSeparator(),
@@ -126,6 +78,7 @@ func Login(w fyne.Window, onProcessed func(masterUrl, apiKey, fontPath string, c
 					err := onProcessed(strings.TrimRight(redmineURL.Text, "/"), redmineKey.Text, fontPath.Text, jsonData)
 					if err != nil {
 						dialog.ShowError(err, w)
+						log.Error("login.Apply", "onProcessed error", zap.Error(err))
 						return
 					}
 				}

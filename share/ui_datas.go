@@ -20,6 +20,7 @@ package share
 import (
 	"io"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 
 	"raku-redmine/utils/database/models"
@@ -45,7 +46,9 @@ type AppUI struct {
 }
 
 type Window interface {
+	SetMaster(w fyne.Window)
 	About()
+	Setting()
 }
 
 type Toolbar interface {

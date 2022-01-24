@@ -22,5 +22,10 @@ import (
 )
 
 type Window struct {
-	App fyne.App
+	ConfPath string
+	Master   fyne.Window
+}
+
+func (win *Window) SetMaster(w fyne.Window) {
+	win.Master = w
 }

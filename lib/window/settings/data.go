@@ -1,7 +1,7 @@
-// Package lib
+// Package settings
 /*
  * Version: 1.0.0
- * Copyright (c) 2021. Pashifika
+ * Copyright (c) 2022. Pashifika
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package lib
+package settings
 
-import (
-	"fyne.io/fyne/v2"
+const (
+	_appGeneral = "app_general"
+	_entryLabel = "setting_name"
 )
 
 var (
-	MainWindow = fyne.Size{
-		Width:  680,
-		Height: 700,
+	pageDatas = map[string]pages{
+		_appGeneral: {
+			name:  "General",
+			title: "Application preferences",
+			view:  makeGeneral,
+		},
+		"redmine": {
+			name:  "Redmine",
+			title: "Advanced config of Redmine client",
+			view:  makeRedmine,
+		},
 	}
-	LoginWindow = fyne.Size{
-		Width:  560,
-		Height: 445,
+
+	pageIndex = map[string][]string{
+		"": {_appGeneral, "redmine"},
 	}
-	SettingWindow = fyne.Size{
-		Width:  640,
-		Height: 425,
-	}
-	DateLayout = "2006-01-02"
 )

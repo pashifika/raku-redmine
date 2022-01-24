@@ -21,12 +21,16 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
+	"go.uber.org/zap"
+
+	"raku-redmine/utils/log"
 )
 
 func ShowFileOpen(w fyne.Window, extensions []string, callCanReader func(reader fyne.URIReadCloser) error) {
 	fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
 		if err != nil {
 			dialog.ShowError(err, w)
+			log.Error("ShowFileOpen", "NewFileOpen error", zap.Error(err))
 			return
 		}
 		if reader == nil {
@@ -35,6 +39,7 @@ func ShowFileOpen(w fyne.Window, extensions []string, callCanReader func(reader 
 		if callCanReader != nil {
 			err = callCanReader(reader)
 			if err != nil {
+				log.Error("ShowFileOpen", "callCanReader error", zap.Error(err))
 				dialog.ShowError(err, w)
 			}
 		}
