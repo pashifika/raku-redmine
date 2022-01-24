@@ -5,6 +5,7 @@ init:
 	git clone git@github.com:pashifika/fyne.git
 	cd fyne
 	git checkout origin/release/fix_v2.1.2 -b release/fix_v2.1.2
+	go install .
 	cd ../raku-redmine/
 	go mod download
 	cp ./config.go ./config_dev.go
@@ -12,7 +13,7 @@ init:
 	echo "Please edit the:"
 	echo "    ./utils/database/config_dev.go"
 	echo "    ./utils/database/config_dev.go"
-	echo "  file to you local path to debug"
+	echo "  file with you local path to debug"
 
 go-test:
 	go test ./...
